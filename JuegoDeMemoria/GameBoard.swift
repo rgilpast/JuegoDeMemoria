@@ -9,7 +9,7 @@
 import Foundation
 
 //tipo para indicar el tamaño del tablero
-enum GameBoardSize: Int
+enum GameBoardSize: UInt
 {
     case x2 = 2
     case x4 = 4
@@ -48,23 +48,23 @@ struct GameBoardCell {
 //clse para manejar el tablero
 class GameBoard {
     
-    private let rows: Int, columns: Int
+    private let rows: UInt, columns: UInt
     private var board: [GameBoardCell]
     var size: GameBoardSize = GameBoardSize.x2
-    var numCells: Int {
+    var numCells: UInt {
         return self.size.rawValue*self.size.rawValue
     }
     
-    init(size: GameBoardSize) {
+    init(withSize size: GameBoardSize) {
         
         self.size = size
         self.rows = self.size.rawValue
         self.columns = self.size.rawValue
-        self.board = Array(count: rows * columns, repeatedValue: GameBoardCell())
+        self.board = Array(count: (Int)(self.rows * self.columns), repeatedValue: GameBoardCell())
         
     }
     
-    private func indexIsValidForRow(row: Int, column: Int) -> Bool {
+    private func indexIsValidForRow(row: UInt, column: UInt) -> Bool {
         return row >= 0 && row < self.rows && column >= 0 && column < self.columns
     }
     
@@ -83,14 +83,14 @@ class GameBoard {
         }
     }
 
-    subscript(row: Int, column: Int) -> GameBoardCell {
+    subscript(row: UInt, column: UInt) -> GameBoardCell {
         get {
             assert(indexIsValidForRow(row, column: column), "Index out of range")
-            return self.board[(row * columns) + column]
+            return self.board[(Int)((row * columns) + column)]
         }
         set {
             assert(indexIsValidForRow(row, column: column), "Index out of range")
-            self.board[(row * columns) + column] = newValue
+            self.board[(Int)((row * columns) + column)] = newValue
         }
     }
     
@@ -99,9 +99,9 @@ class GameBoard {
     {
         //desordenamos las celdas aleatoriamente
         for i in 0..<self.numCells - 1 {
-            let j = Int(arc4random_uniform(UInt32(self.numCells - i))) + i
+            let j = UInt(arc4random_uniform(UInt32(self.numCells-i))) + i
             guard i != j else { continue }
-            swap(&self.board[i], &self.board[j])
+            swap(&self.board[Int(i)], &self.board[Int(j)])
         }
     }
     
@@ -113,7 +113,7 @@ class GameBoard {
         var candidates = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]
         
         //el contador de valores a generar
-        var valuesCounter:Int = self.numCells
+        var valuesCounter:UInt = self.numCells
         
         //iteramos hasta que hayamos rellenado el tablero con los nuevos valores
         while valuesCounter>0
@@ -122,8 +122,12 @@ class GameBoard {
             let candidateIndex:Int = Int(arc4random_uniform(UInt32(candidates.count)));
             
             //añadimos el candidato dos veces, pues será una de las parejas que el usuario debe buscar
-            self.board[self.numCells-valuesCounter].value = candidates[candidateIndex]
-            self.board[self.numCells-valuesCounter-1].value = candidates[candidateIndex]
+            self.board[Int(self.numCells-valuesCounter)].value = candidates[candidateIndex]
+            self.board[Int(self.numCells-valuesCounter+1)].value = candidates[candidateIndex]
+            
+            //establecemos el estado inicial de cada celda a Hidden
+            self.board[Int(self.numCells-valuesCounter)].state = .HiddenCell
+            self.board[Int(self.numCells-valuesCounter+1)].state = .HiddenCell
             
             // eliminamos el candidato elegido para que no se pueda elegir otra vez
             candidates.removeAtIndex(candidateIndex)
